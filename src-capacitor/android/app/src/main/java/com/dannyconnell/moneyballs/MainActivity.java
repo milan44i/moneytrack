@@ -1,4 +1,4 @@
-package com.dannyconnell.moneyballs;
+package com.dannyconnell.moneytrack;
 
 import com.getcapacitor.BridgeActivity;
 

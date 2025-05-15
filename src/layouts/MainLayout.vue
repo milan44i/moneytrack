@@ -34,7 +34,7 @@ function toggleLeftDrawer() {
 const quitApp = () => {
   $q.dialog({
     title: "Confirm",
-    message: "Really quit Moneyballs?",
+    message: "Really quit Moneytrack?",
     cancel: true,
     persistent: true,
     html: true,
