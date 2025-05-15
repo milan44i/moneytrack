@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
-import { ref, computed, reactive, watch, nextTick } from "vue";
-import { uid, Notify, LocalStorage } from "quasar";
+import { ref, computed, reactive, nextTick } from "vue";
+import { Notify } from "quasar";
+import supabase from "src/config/supabase";
+import { useShowErrorMessage } from "src/use/useShowErrorMessage";
 
 export const useStoreEntries = defineStore("entries", () => {
   const entries = ref([
@@ -30,9 +32,7 @@ export const useStoreEntries = defineStore("entries", () => {
     // },
   ]);
 
-  watch(entries.value, () => {
-    saveEntries();
-  });
+  const entriesLoaded = ref(false);
 
   const options = reactive({
     sort: false,
@@ -65,18 +65,66 @@ export const useStoreEntries = defineStore("entries", () => {
     return runningBalances;
   });
 
-  const addEntry = (addEntryForm) => {
-    const newEntry = Object.assign({}, addEntryForm, {
-      id: uid(),
-      paid: false,
-    });
-    if (newEntry.amount === null) newEntry.amount = 0;
-    entries.value.push(newEntry);
+  const loadEntries = async () => {
+    entriesLoaded.value = false;
+    let { data, error } = await supabase.from("entries").select("*");
+    if (error) useShowErrorMessage(error.message);
+    if (data) {
+      entries.value = data;
+      entriesLoaded.value = true;
+      subscribeToEntries();
+    }
   };
 
-  const deleteEntry = (entryId) => {
-    const index = getEntryIndexById(entryId);
-    entries.value.splice(index, 1);
+  const subscribeToEntries = () => {
+    supabase
+      .channel("entries-channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "entries" },
+        (payload) => {
+          console.log("Change received!", payload);
+          if (payload.eventType === "INSERT") {
+            entries.value.push(payload.new);
+          }
+          if (payload.eventType === "UPDATE") {
+            const entryId = payload.new.id;
+            const index = getEntryIndexById(entryId);
+            Object.assign(entries.value[index], payload.new);
+          }
+          if (payload.eventType === "DELETE") {
+            const entryId = payload.old.id;
+            const index = getEntryIndexById(entryId);
+            if (index !== -1) entries.value.splice(index, 1);
+          }
+        }
+      )
+      .subscribe();
+  };
+
+  const addEntry = async (addEntryForm) => {
+    const { data, error } = await supabase
+      .from("entries")
+      .insert([{ name: addEntryForm.name, amount: addEntryForm.amount }])
+      .select();
+
+    if (error) useShowErrorMessage(error.message);
+  };
+
+  const updateEntry = async (entryId, column, value) => {
+    const { data, error } = await supabase
+      .from("entries")
+      .update({ [column]: value })
+      .eq("id", entryId)
+      .select();
+
+    if (error) useShowErrorMessage(error.message);
+  };
+
+  const deleteEntry = async (entryId) => {
+    const { error } = await supabase.from("entries").delete().eq("id", entryId);
+    if (error) useShowErrorMessage(error.message);
+
     removeSlideItemIfExists(entryId);
     Notify.create({
       message: "Entry deleted",
@@ -84,24 +132,10 @@ export const useStoreEntries = defineStore("entries", () => {
     });
   };
 
-  const updateEntry = (entryId, updates) => {
-    const index = getEntryIndexById(entryId);
-    Object.assign(entries.value[index], updates);
-  };
-
   const sortEnd = ({ oldIndex, newIndex }) => {
     const movedEntry = entries.value[oldIndex];
     entries.value.splice(oldIndex, 1);
     entries.value.splice(newIndex, 0, movedEntry);
-  };
-
-  const saveEntries = () => {
-    LocalStorage.set("entries", entries.value);
-  };
-
-  const loadEntries = () => {
-    const savedEntries = LocalStorage.getItem("entries");
-    if (savedEntries) Object.assign(entries.value, savedEntries);
   };
 
   /*
@@ -127,6 +161,7 @@ export const useStoreEntries = defineStore("entries", () => {
   return {
     // state
     entries,
+    entriesLoaded,
     options,
 
     // getters
@@ -135,10 +170,10 @@ export const useStoreEntries = defineStore("entries", () => {
     runningBalances,
 
     // actions
+    loadEntries,
     addEntry,
     deleteEntry,
     updateEntry,
     sortEnd,
-    loadEntries,
   };
 });

@@ -22,8 +22,6 @@ onMounted(() => {
   storeSettings.loadSettings();
   storeEntries.loadEntries();
 
-  console.log("App mounted", process.env);
-
   if ($q.platform.is.electron) {
     ipcRenderer.on("show-settings", () => {
       router.push("/settings");

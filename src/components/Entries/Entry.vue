@@ -26,7 +26,7 @@ const props = defineProps({
 const $q = useQuasar();
 
 const onEntrySlideLeft = ({ reset }) => {
-  storeEntries.updateEntry(props.entry.id, { paid: !props.entry.paid });
+  storeEntries.updateEntry(props.entry.id, "paid", !props.entry.paid);
   reset();
 };
 
@@ -88,11 +88,11 @@ const promptToDelete = async (reset) => {
 };
 
 const onNameUpdate = (value) => {
-  storeEntries.updateEntry(props.entry.id, { name: value });
+  storeEntries.updateEntry(props.entry.id, "name", value);
 };
 
 const onAmountUpdate = (value) => {
-  storeEntries.updateEntry(props.entry.id, { amount: value });
+  storeEntries.updateEntry(props.entry.id, "amount", value);
 };
 </script>
 

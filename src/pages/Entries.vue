@@ -12,23 +12,28 @@ const storeEntries = useStoreEntries();
 <template>
   <q-page>
     <div class="q-pa-md">
-      <transition appear enter-active-class="animated jackInTheBox slower">
-        <NothingHere v-if="!storeEntries.entries.length" />
-      </transition>
+      <template v-if="storeEntries.entriesLoaded">
+        <transition appear enter-active-class="animated jackInTheBox slower">
+          <NothingHere v-if="!storeEntries.entries.length" />
+        </transition>
 
-      <q-list v-if="storeEntries.entries.length" class="entries">
-        <Sortable
-          @end="storeEntries.sortEnd"
-          :list="storeEntries.entries"
-          :options="{ handle: '.handle' }"
-          item-key="id"
-          tag="div"
-        >
-          <template #item="{ element, index }">
-            <Entry :key="element.id" :entry="element" :index="index" />
-          </template>
-        </Sortable>
-      </q-list>
+        <q-list v-if="storeEntries.entries.length" class="entries">
+          <Sortable
+            @end="storeEntries.sortEnd"
+            :list="storeEntries.entries"
+            :options="{ handle: '.handle' }"
+            item-key="id"
+            tag="div"
+          >
+            <template #item="{ element, index }">
+              <Entry :key="element.id" :entry="element" :index="index" />
+            </template>
+          </Sortable>
+        </q-list>
+      </template>
+      <div v-else class="text-center q-pt-xl">
+        <q-spinner size="70px" color="primary" :thickness="7" />
+      </div>
     </div>
 
     <q-footer class="bg-transparent">
