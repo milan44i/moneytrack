@@ -2,15 +2,18 @@
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import { useStoreEntries } from "src/stores/storeEntries";
+import { useStoreAuth } from "src/stores/storeAuth";
 import { useLightOrDark } from "src/use/useLightOrDark";
+import ToolbarTitle from "components/Layout/ToolbarTitle.vue";
 import NavLink from "components/Nav/NavLink.vue";
 
 defineOptions({
   name: "MainLayout",
 });
 
-const $q = useQuasar(),
-  storeEntries = useStoreEntries();
+const $q = useQuasar();
+const storeEntries = useStoreEntries();
+const storeAuth = useStoreAuth();
 
 const navLinks = [
   {
@@ -34,7 +37,7 @@ function toggleLeftDrawer() {
 const quitApp = () => {
   $q.dialog({
     title: "Confirm",
-    message: "Really quit Moneytrack?",
+    message: "Really quit Moneyballs?",
     cancel: true,
     persistent: true,
     html: true,
@@ -66,14 +69,7 @@ const quitApp = () => {
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title>
-          <div class="absolute-center">
-            <div class="toolbar-title-text">
-              <q-icon name="savings" />
-              Moneytrack
-            </div>
-          </div>
-        </q-toolbar-title>
+        <ToolbarTitle />
 
         <q-btn
           v-if="$route.fullPath === '/'"
@@ -98,6 +94,30 @@ const quitApp = () => {
         <q-item-label class="text-white" header> Navigation </q-item-label>
 
         <NavLink v-for="link in navLinks" :key="link.title" v-bind="link" />
+
+        <q-separator spaced />
+
+        <q-item
+          clickable
+          class="text-white"
+          tag="a"
+          @click="storeAuth.logoutUser"
+        >
+          <q-item-section avatar>
+            <q-icon name="logout" />
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>Log out</q-item-label>
+            <q-item-label
+              v-if="storeAuth.userDetails.email"
+              class="text-white"
+              caption
+            >
+              {{ storeAuth.userDetails.email }}
+            </q-item-label>
+          </q-item-section>
+        </q-item>
 
         <q-item
           v-if="$q.platform.is.electron"

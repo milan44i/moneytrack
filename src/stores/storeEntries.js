@@ -11,24 +11,28 @@ export const useStoreEntries = defineStore("entries", () => {
     //   name: 'Salary',
     //   amount: 4999.99,
     //   paid: true
+    //   order: 1
     // },
     // {
     //   id: 'id2',
     //   name: 'Rent',
     //   amount: -999,
-    //   paid: false
+    //   paid: false,
+    //   order: 2
     // },
     // {
     //   id: 'id3',
     //   name: 'Phone bill',
     //   amount: -14.99,
-    //   paid: false
+    //   paid: false,
+    //   order: 3
     // },
     // {
     //   id: 'id4',
     //   name: 'Unknown',
     //   amount: 0,
-    //   paid: false
+    //   paid: false,
+    //   order: 4
     // },
   ]);
 
@@ -67,7 +71,12 @@ export const useStoreEntries = defineStore("entries", () => {
 
   const loadEntries = async () => {
     entriesLoaded.value = false;
-    let { data, error } = await supabase.from("entries").select("*");
+    let { data, error } = await supabase
+      .from("entries")
+      .select("*")
+      .order("order", {
+        ascending: true,
+      });
     if (error) useShowErrorMessage(error.message);
     if (data) {
       entries.value = data;
@@ -105,7 +114,13 @@ export const useStoreEntries = defineStore("entries", () => {
   const addEntry = async (addEntryForm) => {
     const { data, error } = await supabase
       .from("entries")
-      .insert([{ name: addEntryForm.name, amount: addEntryForm.amount }])
+      .insert([
+        {
+          name: addEntryForm.name,
+          amount: addEntryForm.amount,
+          order: generateOrderNumber(),
+        },
+      ])
       .select();
 
     if (error) useShowErrorMessage(error.message);
@@ -116,8 +131,8 @@ export const useStoreEntries = defineStore("entries", () => {
     const previousValue = entries.value[entryIndex][column];
     Object.assign(entries.value[entryIndex], { [column]: value });
 
-    const { _data, error } = await supabase
-      .from("entriesss")
+    const { error } = await supabase
+      .from("entries")
       .update({ [column]: value })
       .eq("id", entryId)
       .select();
@@ -140,15 +155,36 @@ export const useStoreEntries = defineStore("entries", () => {
     }
   };
 
+  const updateOrders = async () => {
+    entries.value.forEach((entry, index) => {
+      entry.order = index + 1;
+    });
+
+    const { error } = await supabase
+      .from("entries")
+      .upsert(entries.value)
+      .select();
+
+    if (error) useShowErrorMessage(error.message);
+  };
+
   const sortEnd = ({ oldIndex, newIndex }) => {
     const movedEntry = entries.value[oldIndex];
     entries.value.splice(oldIndex, 1);
     entries.value.splice(newIndex, 0, movedEntry);
+    updateOrders();
   };
 
   /*
     helpers
   */
+
+  const generateOrderNumber = () => {
+    const maxOrder = entries.value.reduce((max, entry) => {
+      return Math.max(max, entry.order);
+    }, 1);
+    return maxOrder + 1;
+  };
 
   const getEntryIndexById = (entryId) => {
     return entries.value.findIndex((entry) => entry.id === entryId);
