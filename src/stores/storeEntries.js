@@ -1,8 +1,11 @@
-import { defineStore } from "pinia";
-import { ref, computed, reactive, nextTick } from "vue";
-import { Notify } from "quasar";
-import supabase from "src/config/supabase";
-import { useShowErrorMessage } from "src/use/useShowErrorMessage";
+import { defineStore } from "pinia"
+import { ref, computed, reactive, nextTick } from "vue"
+import { Notify } from "quasar"
+import supabase from "src/config/supabase"
+import { useShowErrorMessage } from "src/use/useShowErrorMessage"
+import { useStoreAuth } from "src/stores/storeAuth"
+
+let entriesChannel
 
 export const useStoreEntries = defineStore("entries", () => {
   const entries = ref([
@@ -34,82 +37,94 @@ export const useStoreEntries = defineStore("entries", () => {
     //   paid: false,
     //   order: 4
     // },
-  ]);
+  ])
 
-  const entriesLoaded = ref(false);
-
+  const entriesLoaded = ref(false)
+  const storeAuth = useStoreAuth()
   const options = reactive({
     sort: false,
-  });
+  })
 
   const balance = computed(() => {
     return entries.value.reduce((accumulator, { amount }) => {
-      return accumulator + amount;
-    }, 0);
-  });
+      return accumulator + amount
+    }, 0)
+  })
 
   const balancePaid = computed(() => {
     return entries.value.reduce((accumulator, { amount, paid }) => {
-      return paid ? accumulator + amount : accumulator;
-    }, 0);
-  });
+      return paid ? accumulator + amount : accumulator
+    }, 0)
+  })
 
   const runningBalances = computed(() => {
     let runningBalances = [],
-      currentRunningBalance = 0;
+      currentRunningBalance = 0
 
     if (entries.value.length) {
       entries.value.forEach((entry) => {
-        let entryAmount = entry.amount ? entry.amount : 0;
-        currentRunningBalance = currentRunningBalance + entryAmount;
-        runningBalances.push(currentRunningBalance);
-      });
+        let entryAmount = entry.amount ? entry.amount : 0
+        currentRunningBalance = currentRunningBalance + entryAmount
+        runningBalances.push(currentRunningBalance)
+      })
     }
 
-    return runningBalances;
-  });
+    return runningBalances
+  })
 
   const loadEntries = async () => {
-    entriesLoaded.value = false;
+    entriesLoaded.value = false
     let { data, error } = await supabase
       .from("entries")
       .select("*")
+      .eq("user_id", storeAuth.userDetails.id)
       .order("order", {
         ascending: true,
-      });
-    if (error) useShowErrorMessage(error.message);
+      })
+    if (error) useShowErrorMessage(error.message)
     if (data) {
-      entries.value = data;
-      entriesLoaded.value = true;
-      subscribeToEntries();
+      entries.value = data
+      entriesLoaded.value = true
+      subscribeToEntries()
     }
-  };
+  }
 
   const subscribeToEntries = () => {
-    supabase
+    entriesChannel = supabase
       .channel("entries-channel")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "entries" },
+        {
+          event: "*",
+          schema: "public",
+          table: "entries",
+          filter: `user_id=eq.${storeAuth.userDetails.id}`,
+        },
         (payload) => {
-          console.log("Change received!", payload);
           if (payload.eventType === "INSERT") {
-            entries.value.push(payload.new);
+            entries.value.push(payload.new)
           }
           if (payload.eventType === "UPDATE") {
-            const entryId = payload.new.id;
-            const index = getEntryIndexById(entryId);
-            Object.assign(entries.value[index], payload.new);
+            const entryId = payload.new.id
+            const index = getEntryIndexById(entryId)
+            Object.assign(entries.value[index], payload.new)
           }
           if (payload.eventType === "DELETE") {
-            const entryId = payload.old.id;
-            const index = getEntryIndexById(entryId);
-            if (index !== -1) entries.value.splice(index, 1);
+            const entryId = payload.old.id
+            const index = getEntryIndexById(entryId)
+            if (index !== -1) entries.value.splice(index, 1)
           }
         }
       )
-      .subscribe();
-  };
+      .subscribe()
+  }
+
+  const unsubscribeFromEntries = () => {
+    if (entriesChannel) {
+      supabase.removeChannel(entriesChannel)
+      entriesChannel = null
+    }
+  }
 
   const addEntry = async (addEntryForm) => {
     const { data, error } = await supabase
@@ -119,76 +134,79 @@ export const useStoreEntries = defineStore("entries", () => {
           name: addEntryForm.name,
           amount: addEntryForm.amount,
           order: generateOrderNumber(),
+          user_id: storeAuth.userDetails.id,
         },
       ])
-      .select();
+      .select()
 
-    if (error) useShowErrorMessage(error.message);
-  };
+    if (error) useShowErrorMessage(error.message)
+  }
 
   const updateEntry = async (entryId, column, value) => {
-    const entryIndex = getEntryIndexById(entryId);
-    const previousValue = entries.value[entryIndex][column];
-    Object.assign(entries.value[entryIndex], { [column]: value });
+    const entryIndex = getEntryIndexById(entryId)
+    const previousValue = entries.value[entryIndex][column]
+    Object.assign(entries.value[entryIndex], { [column]: value })
 
     const { error } = await supabase
       .from("entries")
       .update({ [column]: value })
       .eq("id", entryId)
-      .select();
+      .select()
 
     if (error) {
-      Object.assign(entries.value[entryIndex], { [column]: previousValue });
-      useShowErrorMessage(error.message);
+      Object.assign(entries.value[entryIndex], { [column]: previousValue })
+      useShowErrorMessage(error.message)
     }
-  };
+  }
 
   const deleteEntry = async (entryId) => {
-    const { error } = await supabase.from("entries").delete().eq("id", entryId);
-    if (error) useShowErrorMessage(error.message);
+    const { error } = await supabase.from("entries").delete().eq("id", entryId)
+    if (error) useShowErrorMessage(error.message)
     else {
-      removeSlideItemIfExists(entryId);
+      removeSlideItemIfExists(entryId)
       Notify.create({
         message: "Entry deleted",
         position: "top",
-      });
+      })
     }
-  };
+  }
+
+  const resetEntries = () => {
+    entries.value = []
+  }
 
   const updateOrders = async () => {
     entries.value.forEach((entry, index) => {
-      entry.order = index + 1;
-    });
+      entry.order = index + 1
+    })
 
     const { error } = await supabase
       .from("entries")
       .upsert(entries.value)
-      .select();
+      .select()
 
-    if (error) useShowErrorMessage(error.message);
-  };
+    if (error) useShowErrorMessage(error.message)
+  }
 
   const sortEnd = ({ oldIndex, newIndex }) => {
-    const movedEntry = entries.value[oldIndex];
-    entries.value.splice(oldIndex, 1);
-    entries.value.splice(newIndex, 0, movedEntry);
-    updateOrders();
-  };
+    const movedEntry = entries.value[oldIndex]
+    entries.value.splice(oldIndex, 1)
+    entries.value.splice(newIndex, 0, movedEntry)
+    updateOrders()
+  }
 
-  /*
-    helpers
-  */
+  // helpers
 
   const generateOrderNumber = () => {
     const maxOrder = entries.value.reduce((max, entry) => {
-      return Math.max(max, entry.order);
-    }, 1);
-    return maxOrder + 1;
-  };
+      return Math.max(max, entry.order)
+    }, 1)
+    return maxOrder + 1
+  }
 
   const getEntryIndexById = (entryId) => {
-    return entries.value.findIndex((entry) => entry.id === entryId);
-  };
+    return entries.value.findIndex((entry) => entry.id === entryId)
+  }
 
   const removeSlideItemIfExists = (entryId) => {
     // hacky fix: when deleting (after sorting),
@@ -197,10 +215,10 @@ export const useStoreEntries = defineStore("entries", () => {
     // item from the dom if it still exists
     // (after entry removed from entries array)
     nextTick(() => {
-      const slideItem = document.querySelector(`#id-${entryId}`);
-      if (slideItem) slideItem.remove();
-    });
-  };
+      const slideItem = document.querySelector(`#id-${entryId}`)
+      if (slideItem) slideItem.remove()
+    })
+  }
 
   return {
     // state
@@ -218,6 +236,8 @@ export const useStoreEntries = defineStore("entries", () => {
     addEntry,
     deleteEntry,
     updateEntry,
+    resetEntries,
     sortEnd,
-  };
-});
+    unsubscribeFromEntries,
+  }
+})
