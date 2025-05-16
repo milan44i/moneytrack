@@ -112,24 +112,32 @@ export const useStoreEntries = defineStore("entries", () => {
   };
 
   const updateEntry = async (entryId, column, value) => {
-    const { data, error } = await supabase
-      .from("entries")
+    const entryIndex = getEntryIndexById(entryId);
+    const previousValue = entries.value[entryIndex][column];
+    Object.assign(entries.value[entryIndex], { [column]: value });
+
+    const { _data, error } = await supabase
+      .from("entriesss")
       .update({ [column]: value })
       .eq("id", entryId)
       .select();
 
-    if (error) useShowErrorMessage(error.message);
+    if (error) {
+      Object.assign(entries.value[entryIndex], { [column]: previousValue });
+      useShowErrorMessage(error.message);
+    }
   };
 
   const deleteEntry = async (entryId) => {
     const { error } = await supabase.from("entries").delete().eq("id", entryId);
     if (error) useShowErrorMessage(error.message);
-
-    removeSlideItemIfExists(entryId);
-    Notify.create({
-      message: "Entry deleted",
-      position: "top",
-    });
+    else {
+      removeSlideItemIfExists(entryId);
+      Notify.create({
+        message: "Entry deleted",
+        position: "top",
+      });
+    }
   };
 
   const sortEnd = ({ oldIndex, newIndex }) => {
