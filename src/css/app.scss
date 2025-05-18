@@ -79,3 +79,17 @@ input::-webkit-inner-spin-button {
     color: $negative-light;
   }
 }
+
+// auth page
+.auth {
+  min-width: 320px;
+}
+.entries-count {
+  border: 1px solid white;
+  border-radius: 60px;
+  opacity: 0;
+  transition: opacity 3s;
+  &.fade-in {
+    opacity: 1;
+  }
+}

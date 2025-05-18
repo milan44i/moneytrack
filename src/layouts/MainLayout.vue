@@ -1,19 +1,21 @@
 <script setup>
-import { ref } from "vue";
-import { useQuasar } from "quasar";
-import { useStoreEntries } from "src/stores/storeEntries";
-import { useStoreAuth } from "src/stores/storeAuth";
-import { useLightOrDark } from "src/use/useLightOrDark";
-import ToolbarTitle from "components/Layout/ToolbarTitle.vue";
-import NavLink from "components/Nav/NavLink.vue";
+import { ref } from "vue"
+import { useQuasar } from "quasar"
+import { useStoreEntries } from "src/stores/storeEntries"
+import { useStoreAuth } from "src/stores/storeAuth"
+import { useStoreSettings } from "src/stores/storeSettings"
+import { useLightOrDark } from "src/use/useLightOrDark"
+import ToolbarTitle from "components/Layout/ToolbarTitle.vue"
+import NavLink from "components/Nav/NavLink.vue"
 
 defineOptions({
   name: "MainLayout",
-});
+})
 
-const $q = useQuasar();
-const storeEntries = useStoreEntries();
-const storeAuth = useStoreAuth();
+const $q = useQuasar()
+const storeEntries = useStoreEntries()
+const storeAuth = useStoreAuth()
+const storeSettings = useStoreSettings()
 
 const navLinks = [
   {
@@ -26,18 +28,18 @@ const navLinks = [
     icon: "settings",
     link: "/settings",
   },
-];
+]
 
-const leftDrawerOpen = ref(false);
+const leftDrawerOpen = ref(false)
 
 function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
+  leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
 const quitApp = () => {
   $q.dialog({
     title: "Confirm",
-    message: "Really quit Moneyballs?",
+    message: "Really quit Moneytrack?",
     cancel: true,
     persistent: true,
     html: true,
@@ -51,9 +53,9 @@ const quitApp = () => {
       noCaps: true,
     },
   }).onOk(() => {
-    if ($q.platform.is.electron) ipcRenderer.send("quit-app");
-  });
-};
+    if ($q.platform.is.electron) ipcRenderer.send("quit-app")
+  })
+}
 </script>
 
 <template>
@@ -104,7 +106,10 @@ const quitApp = () => {
           @click="storeAuth.logoutUser"
         >
           <q-item-section avatar>
-            <q-icon name="logout" />
+            <q-avatar v-if="storeSettings.profile.avatarUrl" size="30px">
+              <img :src="storeSettings.profile.avatarUrl" />
+            </q-avatar>
+            <q-icon v-else name="logout" />
           </q-item-section>
 
           <q-item-section>

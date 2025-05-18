@@ -1,42 +1,59 @@
 <script setup>
-import { ref, computed, reactive } from "vue";
-import { useQuasar } from "quasar";
-import { useStoreAuth } from "src/stores/storeAuth";
-import { useLightOrDark } from "src/use/useLightOrDark";
-import ToolbarTitle from "src/components/Layout/ToolbarTitle.vue";
+import { ref, computed, reactive, onMounted } from "vue"
+import { useQuasar } from "quasar"
+import supabase from "src/config/supabase"
+import { useStoreAuth } from "src/stores/storeAuth"
+import { useLightOrDark } from "src/use/useLightOrDark"
+import { useShowErrorMessage } from "src/use/useShowErrorMessage"
+import ToolbarTitle from "src/components/Layout/ToolbarTitle.vue"
 
-const storeAuth = useStoreAuth();
-const $q = useQuasar();
+const storeAuth = useStoreAuth()
 
-const tab = ref("login");
+const $q = useQuasar()
+
+const entriesCount = ref(null)
+
+onMounted(async () => {
+  let { data: stats, error } = await supabase
+    .from("stats")
+    .select("*")
+    .eq("name", "entries_count")
+
+  if (error) useShowErrorMessage(error.message || "Error fetching stats")
+  if (stats) {
+    entriesCount.value = stats[0].value
+  }
+})
+
+const tab = ref("login")
 
 const submitButtonTitle = computed(() => {
-  return tab.value === "login" ? "Login" : "Register";
-});
+  return tab.value === "login" ? "Login" : "Register"
+})
 
 const credentials = reactive({
   email: "",
   password: "",
-});
+})
 
 const formSubmit = () => {
   if (!credentials.email || !credentials.password) {
     $q.dialog({
       title: "Error",
       message: "Please enter an email & password motherflipper!",
-    });
+    })
   } else {
-    formSubmitSuccess();
+    formSubmitSuccess()
   }
-};
+}
 
 const formSubmitSuccess = () => {
   if (tab.value === "register") {
-    storeAuth.registerUser(credentials);
+    storeAuth.registerUser(credentials)
   } else {
-    storeAuth.loginUser(credentials);
+    storeAuth.loginUser(credentials)
   }
-};
+}
 </script>
 
 <template>
@@ -44,6 +61,16 @@ const formSubmitSuccess = () => {
     <q-card class="auth bg-primary text-white q-pa-lg">
       <q-card-section>
         <ToolbarTitle />
+      </q-card-section>
+
+      <q-card-section class="q-pb-none">
+        <q-banner
+          :class="{ 'fade-in': entriesCount }"
+          class="entries-count bg-primary text-white text-center text-italic"
+        >
+          <div>Over {{ entriesCount }} Entries have been</div>
+          <div>created with Moneytrack!</div>
+        </q-banner>
       </q-card-section>
 
       <q-card-section>

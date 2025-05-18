@@ -81,7 +81,7 @@ export const useStoreEntries = defineStore("entries", () => {
       .order("order", {
         ascending: true,
       })
-    if (error) useShowErrorMessage(error.message)
+    if (error) useShowErrorMessage(error.message || "Could not load entries")
     if (data) {
       entries.value = data
       entriesLoaded.value = true
@@ -139,8 +139,21 @@ export const useStoreEntries = defineStore("entries", () => {
       ])
       .select()
 
-    if (error) useShowErrorMessage(error.message)
+    if (error) useShowErrorMessage(error.message || "Could not add entry")
   }
+
+  // example of DB function
+  // const updateEntriesCount = async () => {
+  //   const { data, error } = await supabase.rpc("increment_entries_count")
+
+  //   if (error) useShowErrorMessage(error.message)
+  //   else {
+  //     Notify.create({
+  //       message: "Entry added",
+  //       position: "top",
+  //     })
+  //   }
+  // }
 
   const updateEntry = async (entryId, column, value) => {
     const entryIndex = getEntryIndexById(entryId)
@@ -155,13 +168,13 @@ export const useStoreEntries = defineStore("entries", () => {
 
     if (error) {
       Object.assign(entries.value[entryIndex], { [column]: previousValue })
-      useShowErrorMessage(error.message)
+      useShowErrorMessage(error.message || "Could not update entry")
     }
   }
 
   const deleteEntry = async (entryId) => {
     const { error } = await supabase.from("entries").delete().eq("id", entryId)
-    if (error) useShowErrorMessage(error.message)
+    if (error) useShowErrorMessage(error.message || "Could not delete entry")
     else {
       removeSlideItemIfExists(entryId)
       Notify.create({
@@ -185,7 +198,7 @@ export const useStoreEntries = defineStore("entries", () => {
       .upsert(entries.value)
       .select()
 
-    if (error) useShowErrorMessage(error.message)
+    if (error) useShowErrorMessage(error.message || "Could not update orders")
   }
 
   const sortEnd = ({ oldIndex, newIndex }) => {

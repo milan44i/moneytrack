@@ -3,7 +3,7 @@
     <div class="absolute-center">
       <div class="toolbar-title-text">
         <q-icon name="savings" />
-        Moneyballs
+        Moneytrack
       </div>
     </div>
   </q-toolbar-title>
