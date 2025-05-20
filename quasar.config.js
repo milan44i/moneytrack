@@ -8,6 +8,8 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
+const isLocalSupabase = false
+
 const { configure } = require("quasar/wrappers")
 
 module.exports = configure(function (/* ctx */) {
@@ -40,9 +42,12 @@ module.exports = configure(function (/* ctx */) {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
     build: {
       env: {
-        SUPABASE_URL: "https://kqvyjtemdtmysyyhomrd.supabase.co",
-        SUPABASE_KEY:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxdnlqdGVtZHRteXN5eWhvbXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMjYxMjMsImV4cCI6MjA2MjkwMjEyM30.Vszve_ZDQNegIvY22tSWVrbNbj7kzpeJtg89rLodyX8",
+        SUPABASE_URL: isLocalSupabase
+          ? "http://127.0.0.1:54321"
+          : "https://kqvyjtemdtmysyyhomrd.supabase.co",
+        SUPABASE_KEY: isLocalSupabase
+          ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+          : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxdnlqdGVtZHRteXN5eWhvbXJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczMjYxMjMsImV4cCI6MjA2MjkwMjEyM30.Vszve_ZDQNegIvY22tSWVrbNbj7kzpeJtg89rLodyX8",
       },
       target: {
         browser: ["es2019", "edge88", "firefox78", "chrome87", "safari13.1"],

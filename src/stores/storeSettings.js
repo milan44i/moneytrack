@@ -15,6 +15,15 @@ export const useStoreSettings = defineStore("settings", () => {
     darkMode: false, // false | true | 'auto'
   })
 
+  const profileDefault = {
+    avatarFile: null,
+    avatarUrl: null,
+    bio: "",
+  }
+  const profile = reactive({
+    ...profileDefault,
+  })
+
   watch(
     () => settings.darkMode,
     (value) => {
@@ -25,14 +34,6 @@ export const useStoreSettings = defineStore("settings", () => {
 
   watch(settings, () => {
     saveSettings()
-  })
-
-  const profileDefault = {
-    avatarFile: null,
-    avatarUrl: null,
-  }
-  const profile = reactive({
-    ...profileDefault,
   })
 
   const saveSettings = () => {
@@ -62,25 +63,33 @@ export const useStoreSettings = defineStore("settings", () => {
       .select()
     if (error)
       useShowErrorMessage(error.message || "Could not save avatar filename")
-    if (data) getAvatarUrl()
+    if (data) getProfile()
   }
 
-  const getAvatarUrl = async () => {
+  const resetProfile = () => {
+    Object.assign(profile, profileDefault)
+  }
+
+  const saveBio = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert({ id: storeAuth.userDetails.id, bio: profile.bio })
+      .select()
+    if (error) useShowErrorMessage(error.message || "Could not save bio")
+  }
+
+  const getProfile = async () => {
     let { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", storeAuth.userDetails.id)
 
-    if (error)
-      useShowErrorMessage(error.message || "Could not fetch avatar URL")
+    if (error) useShowErrorMessage(error.message || "Could not fetch profile")
     if (data && data.length) {
       const fileName = data[0].avatar_filename
-      profile.avatarUrl = `https://kqvyjtemdtmysyyhomrd.supabase.co/storage/v1/object/public/avatars/${storeAuth.userDetails.id}/${fileName}`
+      profile.avatarUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/avatars/${storeAuth.userDetails.id}/${fileName}`
+      profile.bio = data[0].bio
     }
-  }
-
-  const resetProfile = () => {
-    Object.assign(profile, profileDefault)
   }
 
   return {
@@ -88,7 +97,8 @@ export const useStoreSettings = defineStore("settings", () => {
     profile,
     loadSettings,
     uploadAvatar,
-    getAvatarUrl,
     resetProfile,
+    saveBio,
+    getProfile,
   }
 })
