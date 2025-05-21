@@ -40,7 +40,8 @@ module.exports = configure(function () {
         node: "node20",
       },
 
-      vueRouterMode: "hash",
+      vueRouterMode: "history", // Changed from "hash" to "history"
+      publicPath: '/', // Ensures correct asset paths
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer

@@ -40,9 +40,7 @@ const promptToDelete = async (reset) => {
     )}`,
     title = "Delete Entry",
     messageStart = "Delete this Entry?",
-    message = $q.platform.is.capacitor
-      ? `${messageStart}\n\n${entryDetails}`
-      : `
+    message = `
                         ${messageStart}
                         <div class="q-mt-md text-weight-bold ${useAmountColorClass(
                           props.entry.amount

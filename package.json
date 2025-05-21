@@ -8,7 +8,8 @@
   "scripts": {
     "icons": "icongenie generate -i app-icon.png --skip-trim --theme-color 00695c --splashscreen-icon-ratio 25",
     "dev": "quasar dev",
-    "build": "quasar build"
+    "build": "quasar build",
+    "postbuild": "cp public/_redirects dist/spa/_redirects"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
@@ -23,6 +24,7 @@
   "devDependencies": {
     "@quasar/app-vite": "^1.9.0",
     "autoprefixer": "^10.4.2",
+    "cross-env": "^7.0.3",
     "postcss": "^8.4.14",
     "supabase": "^2.22.12"
   },
