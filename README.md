@@ -1,4 +1,4 @@
-# MoneyTrack - Personal Finance Tracker
+# Moneytrack - Personal Finance Tracker
 
 ## Overview
 
