@@ -13,7 +13,7 @@ password: qqqqqq
 
 - **User Authentication**: Secure login and registration using Supabase Auth
 - **Profile Management**: Customize your profile with avatars and bio
-- **Budget Tracking**: Record your income and expenses
+- **Budget Tracking**: Create, edit, update, delete and reorder your income and expenses
 - **Responsive Design**: Optimized for all device sizes
 
 ## Tech Stack
