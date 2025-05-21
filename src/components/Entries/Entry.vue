@@ -1,16 +1,15 @@
 <script setup>
-import { Dialog } from "@capacitor/dialog";
-import { useQuasar } from "quasar";
-import { useStoreEntries } from "src/stores/storeEntries";
-import { useStoreSettings } from "src/stores/storeSettings";
-import { useCurrencify } from "src/use/useCurrencify";
-import { useAmountColorClass } from "src/use/useAmountColorClass";
-import { useLightOrDark } from "src/use/useLightOrDark";
-import vSelectAll from "src/directives/directiveSelectAll";
-import vAutofocus from "src/directives/directiveAutofocus";
+import { useQuasar } from "quasar"
+import { useStoreEntries } from "src/stores/storeEntries"
+import { useStoreSettings } from "src/stores/storeSettings"
+import { useCurrencify } from "src/use/useCurrencify"
+import { useAmountColorClass } from "src/use/useAmountColorClass"
+import { useLightOrDark } from "src/use/useLightOrDark"
+import vSelectAll from "src/directives/directiveSelectAll"
+import vAutofocus from "src/directives/directiveAutofocus"
 
 const storeEntries = useStoreEntries(),
-  storeSettings = useStoreSettings();
+  storeSettings = useStoreSettings()
 
 const props = defineProps({
   entry: {
@@ -21,19 +20,19 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-});
+})
 
-const $q = useQuasar();
+const $q = useQuasar()
 
 const onEntrySlideLeft = ({ reset }) => {
-  storeEntries.updateEntry(props.entry.id, "paid", !props.entry.paid);
-  reset();
-};
+  storeEntries.updateEntry(props.entry.id, "paid", !props.entry.paid)
+  reset()
+}
 
 const onEntrySlideRight = ({ reset }) => {
-  if (storeSettings.settings.promptToDelete) promptToDelete(reset);
-  else storeEntries.deleteEntry(props.entry.id);
-};
+  if (storeSettings.settings.promptToDelete) promptToDelete(reset)
+  else storeEntries.deleteEntry(props.entry.id)
+}
 
 const promptToDelete = async (reset) => {
   const entryDetails = `${props.entry.name} : ${useCurrencify(
@@ -51,49 +50,39 @@ const promptToDelete = async (reset) => {
                           ${entryDetails}
                         </div>
                       `,
-    okButtonTitle = "Delete";
+    okButtonTitle = "Delete"
 
-  if ($q.platform.is.capacitor) {
-    const { value } = await Dialog.confirm({
-      title,
-      message,
-      okButtonTitle,
-    });
-    if (value) storeEntries.deleteEntry(props.entry.id);
-    else reset();
-  } else {
-    $q.dialog({
-      title,
-      message,
-      cancel: true,
-      persistent: true,
-      html: true,
-      ok: {
-        label: okButtonTitle,
-        color: "negative",
-        noCaps: true,
-      },
-      cancel: {
-        color: "primary",
-        noCaps: true,
-      },
+  $q.dialog({
+    title,
+    message,
+    cancel: true,
+    persistent: true,
+    html: true,
+    ok: {
+      label: okButtonTitle,
+      color: "negative",
+      noCaps: true,
+    },
+    cancel: {
+      color: "primary",
+      noCaps: true,
+    },
+  })
+    .onOk(() => {
+      storeEntries.deleteEntry(props.entry.id)
     })
-      .onOk(() => {
-        storeEntries.deleteEntry(props.entry.id);
-      })
-      .onCancel(() => {
-        reset();
-      });
-  }
-};
+    .onCancel(() => {
+      reset()
+    })
+}
 
 const onNameUpdate = (value) => {
-  storeEntries.updateEntry(props.entry.id, "name", value);
-};
+  storeEntries.updateEntry(props.entry.id, "name", value)
+}
 
 const onAmountUpdate = (value) => {
-  storeEntries.updateEntry(props.entry.id, "amount", value);
-};
+  storeEntries.updateEntry(props.entry.id, "amount", value)
+}
 </script>
 
 <template>
