@@ -28,7 +28,6 @@ export const useStoreAuth = defineStore("auth", () => {
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (session !== null) {
-          console.log(session)
           userDetails.id = session.user.id
           userDetails.email = session.user.email
           storeEntries.loadEntries()
@@ -83,7 +82,6 @@ export const useStoreAuth = defineStore("auth", () => {
     })
 
     if (error) useShowErrorMessage(error.message || "Could not register user")
-    // if (data) console.log('data: ', data)
   }
 
   const loginUser = async ({ email, password }) => {
@@ -93,13 +91,11 @@ export const useStoreAuth = defineStore("auth", () => {
     })
 
     if (error) useShowErrorMessage(error.message || "Could not log in user")
-    // if (data) console.log('data: ', data)
   }
 
   const logoutUser = async () => {
     let { error } = await supabase.auth.signOut()
     if (error) useShowErrorMessage(error.message || "Could not log out user")
-    // else console.log('User was signed out')
   }
 
   return {
