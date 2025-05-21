@@ -2,10 +2,10 @@
 
 ## Overview
 
-MoneyTrack is a modern personal finance tracking application built with Vue 3, Quasar Framework, and Supabase. The application helps users track their income and expenses, in order to manage budget more effectively.
-[Live version](https://moneytracker-milan44.netlify.app/)
-Credentials:
-email: milan@gmail.com
+MoneyTrack is a modern personal finance tracking application built with Vue 3, Quasar Framework, and Supabase. The application helps users track their income and expenses, in order to manage budget more effectively. <br>
+[Live version](https://moneytracker-milan44.netlify.app/) <br>
+Credentials: <br>
+email: milan@gmail.com <br>
 password: qqqqqq
 
 ## Features
