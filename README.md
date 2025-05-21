@@ -1,15 +1,37 @@
-# Supabase & Vue 3 (with Quasar & Pinia)
+# MoneyTrack - Personal Finance Tracker
 
-This is the source code from the **Supabase & Vue 3 (with Quasar & Pinia)** course. Follow this guide to get the project running.
+## Overview
 
-### Install the dependencies
+MoneyTrack is a modern personal finance tracking application built with Vue 3, Quasar Framework, and Supabase. The application helps users track their income and expenses, in order to manage budget more effectively.
+[Live version](https://moneytracker-milan44.netlify.app/)
+Credentials:
+email: milan@gmail.com
+password: qqqqqq
 
-```bash
-npm install
-```
+## Features
 
-### Start the app in development mode
+- **User Authentication**: Secure login and registration using Supabase Auth
+- **Profile Management**: Customize your profile with avatars and bio
+- **Budget Tracking**: Record your income and expenses
+- **Responsive Design**: Optimized for all device sizes
 
-```bash
-quasar dev
-```
+## Tech Stack
+
+- **Frontend**: Vue 3, Quasar Framework, Pinia (State Management)
+- **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge and DB Functions)
+- **Build Tools**: Vite, Quasar CLI
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- npm or yarn
+- Supabase account and project
+
+### Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/moneytrack.git
+   cd moneytrack
