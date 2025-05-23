@@ -87,7 +87,11 @@ export const useStoreSettings = defineStore("settings", () => {
     if (error) useShowErrorMessage(error.message || "Could not fetch profile")
     if (data && data.length) {
       const fileName = data[0].avatar_filename
-      profile.avatarUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/avatars/${storeAuth.userDetails.id}/${fileName}`
+      profile.avatarUrl = `${
+        import.meta.env.VITE_SUPABASE_URL
+      }/storage/v1/object/public/avatars/${
+        storeAuth.userDetails.id
+      }/${fileName}`
       profile.bio = data[0].bio
     }
   }

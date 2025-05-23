@@ -58,7 +58,7 @@ export const useStoreAuth = defineStore("auth", () => {
 
     try {
       const response = await fetch(
-        `${process.env.SUPABASE_URL}/functions/v1/greeting`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/greeting`,
         requestOptions
       )
       const result = await response.json()
